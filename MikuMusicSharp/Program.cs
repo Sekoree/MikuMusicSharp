@@ -4,9 +4,12 @@ namespace MikuMusicSharp
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            Console.WriteLine("Hello World!");
+            using (var b = new Bot())
+            {
+                b.RunAsync().Wait();
+            }
         }
     }
 }
