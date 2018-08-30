@@ -170,6 +170,7 @@ namespace MikuMusicSharp
                     await Task.CompletedTask;
                 };
             }
+
             bot.Ready += async e =>
             {
                 DiscordActivity test = new DiscordActivity
