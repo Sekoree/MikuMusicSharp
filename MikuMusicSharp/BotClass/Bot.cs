@@ -4,7 +4,6 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.Lavalink;
 using System;
 using System.Linq;
-//using NYoutubeDL;
 using System.Threading.Tasks;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Entities;
@@ -12,7 +11,6 @@ using System.Threading;
 using DSharpPlus.Net.Udp;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace MikuMusicSharp
 {
@@ -51,7 +49,6 @@ namespace MikuMusicSharp
 
             var commands = await bot.UseCommandsNextAsync(new CommandsNextConfiguration()
             {
-                StringPrefixes = (new[] { "m%" }),
                 EnableDefaultHelp = false,
                 IgnoreExtraArguments = false,
                 CaseSensitive = false

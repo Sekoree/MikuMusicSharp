@@ -45,13 +45,19 @@ namespace MikuMusicSharp.Commands.Audio
         {
             try
             {
-                IEnumerable<DSharpPlus.Lavalink.LavalinkTrack> track;
+                DSharpPlus.Lavalink.LavalinkTrack track;
                 string pora = "Playing";
                 string end = "";
                 if (!song.StartsWith("https://") && !song.StartsWith("http://"))
                 {
-                    track = await Bot.guit[0].LLinkCon.GetTracksAsync(song);
-                    if (track.First().Author == null)
+                    var tra = await Bot.guit[0].LLinkCon.GetTracksAsync(song);
+                    if (tra.LoadResultType == DSharpPlus.Lavalink.LavalinkLoadResultType.NoMatches || tra.LoadResultType == DSharpPlus.Lavalink.LavalinkLoadResultType.LoadFailed)
+                    {
+                        await ctx.RespondAsync("An error occoured while loading the song, this could be due to the song being region locked uwu");
+                        return;
+                    }
+                    track = tra.Tracks.First();
+                    if (track.Author == null)
                     {
                         await ctx.RespondAsync("Nothing found uwu or error while trying to load track (maybe geoblock)");
                         return;
@@ -59,8 +65,18 @@ namespace MikuMusicSharp.Commands.Audio
                 }
                 else
                 {
-                    track = await Bot.guit[0].LLinkCon.GetTracksAsync(new Uri(song));
-                    if (track.First().Author == null)
+                    var tra = await Bot.guit[0].LLinkCon.GetTracksAsync(new Uri(song));
+                    if (tra.LoadResultType == DSharpPlus.Lavalink.LavalinkLoadResultType.NoMatches || tra.LoadResultType == DSharpPlus.Lavalink.LavalinkLoadResultType.LoadFailed)
+                    {
+                        await ctx.RespondAsync("An error occoured while loading the song, this could be due to the song being region locked uwu");
+                        return;
+                    }
+                    track = tra.Tracks.First();
+                    if (tra.LoadResultType == DSharpPlus.Lavalink.LavalinkLoadResultType.PlaylistLoaded)
+                    {
+                        track = tra.Tracks.ToList()[tra.PlaylistInfo.SelectedTrack];
+                    }
+                    if (track.Author == null)
                     {
                         await ctx.RespondAsync("Nothing found uwu or error while trying to load track (maybe geoblock)");
                         return;
@@ -73,11 +89,11 @@ namespace MikuMusicSharp.Commands.Audio
                 }
                 Bot.guit[pos].queue.Add(new Gsets2
                 {
-                    LavaTrack = track.First(),
+                    LavaTrack = track,
                     requester = ctx.Member,
                     addtime = DateTime.Now
                 });
-                int yoyo = Bot.guit[pos].queue.FindIndex(x => x.LavaTrack.Uri == track.First().Uri && x.requester == ctx.Member);
+                int yoyo = Bot.guit[pos].queue.FindIndex(x => x.LavaTrack.Uri == track.Uri && x.requester == ctx.Member);
                 string uwu = Bot.guit[pos].queue[yoyo].requester.Username;
                 if (Bot.guit[pos].queue[yoyo].requester.Nickname != null) uwu += $" ({Bot.guit[pos].queue[yoyo].requester.Nickname})";
                 await ctx.RespondAsync($"{pora}: **{Bot.guit[pos].queue[yoyo].LavaTrack.Title}** by **{Bot.guit[pos].queue[yoyo].LavaTrack.Author}** {end}\nRequested by: {uwu}");
@@ -165,10 +181,10 @@ namespace MikuMusicSharp.Commands.Audio
                 if (Bot.guit[pos].playnow.LavaTrack.IsStream)
                 {
                     var naet = await Bot.guit[0].LLinkCon.GetTracksAsync(new Uri(Bot.guit[pos].playnow.LavaTrack.Uri.OriginalString));
-                    Bot.guit[pos].playnow.LavaTrack = naet.First();
+                    Bot.guit[pos].playnow.LavaTrack = naet.Tracks.First();
                 }
-                IEnumerable<DSharpPlus.Lavalink.LavalinkTrack> datrack2 = await Bot.guit[0].LLinkCon.GetTracksAsync(new Uri(Bot.guit[pos].queue[rr].LavaTrack.Uri.OriginalString));
-                if (datrack2.Count() == 0)
+                var datrack2 = await Bot.guit[0].LLinkCon.GetTracksAsync(new Uri(Bot.guit[pos].queue[rr].LavaTrack.Uri.OriginalString));
+                if (datrack2.LoadResultType == DSharpPlus.Lavalink.LavalinkLoadResultType.NoMatches || datrack2.LoadResultType == DSharpPlus.Lavalink.LavalinkLoadResultType.LoadFailed)
                 {
                     try
                     {
@@ -176,6 +192,7 @@ namespace MikuMusicSharp.Commands.Audio
                     }
                     catch { }
                     await ctx.RespondAsync("Track error, maybe regionlocked, skipped >>");
+                    await Task.CompletedTask;
                     return;
                 }
                 await Task.Delay(250);
@@ -185,6 +202,7 @@ namespace MikuMusicSharp.Commands.Audio
                 Console.WriteLine(Bot.guit[pos].playing);
                 while (Bot.guit[pos].playing)
                 {
+                    //Console.WriteLine("inloop");
                     if (ctx.Client.GetGuildAsync(Bot.guit[pos].GID).Result.GetMemberAsync(ctx.Client.CurrentUser.Id).Result.VoiceState?.Channel.Users.Where(x => x.IsBot == false).Count() == 0)
                     {
                         if (DateTime.Now.Subtract(Bot.guit[pos].offtime).TotalMinutes > 4)
@@ -206,7 +224,10 @@ namespace MikuMusicSharp.Commands.Audio
                     await Task.Delay(25);
                 }
             }
-            catch { }
+            catch (Exception ex){
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.StackTrace);
+            }
             await Task.CompletedTask;
         }
     }

@@ -7,13 +7,15 @@ using DSharpPlus.Lavalink.EventArgs;
 using DSharpPlus.Entities;
 using System.Linq;
 using System.Collections.Generic;
+using Google.Apis.YouTube.v3;
+using Google.Apis.Services;
 
 namespace MikuMusicSharp.Commands
 {
     class Voice : BaseCommandModule
     {
         [Command("join")]
-        public async Task LLinkJoin(CommandContext ctx, [RemainingText] string uri = null)
+        public async Task LLinkJoin(CommandContext ctx)
         {
             try
             {
@@ -82,6 +84,14 @@ namespace MikuMusicSharp.Commands
                     }
                     Bot.guit[pos].audioPlay.QueueLoop(pos, ctx);
                 }
+                else if (!wasdisc && uri == null && !Bot.guit[pos].playing)
+                {
+                    if (Bot.guit[pos].queue.Count != 0 && Bot.guit[pos].queue.Count > 0)
+                    {
+                        await ctx.RespondAsync("Resuming queue!");
+                    }
+                    Bot.guit[pos].audioPlay.QueueLoop(pos, ctx);
+                }
                 else if (wasdisc && uri != null)
                 {
                     if (Bot.guit[pos].queue.Count != 0)
@@ -90,14 +100,15 @@ namespace MikuMusicSharp.Commands
                     }
                     Bot.guit[pos].audioPlay.PlaySong(pos, ctx, uri);
                 }
-                else if (!wasdisc && Bot.guit[pos].queue.Count < 1 && !Bot.guit[pos].playing)
+                else if (!wasdisc && Bot.guit[pos].queue.Count < 1 && !Bot.guit[pos].playing && uri != null)
                 {
                     Bot.guit[pos].audioPlay.PlaySong(pos, ctx, uri);
                 }
-                else if (!wasdisc && Bot.guit[pos].queue.Count > 1 && Bot.guit[pos].playing)
+                else if (!wasdisc && Bot.guit[pos].queue.Count > 1 && Bot.guit[pos].playing && uri != null)
                 {
                     var q_It = Bot.guit[pos].audioPlay.QueueSong(pos, ctx, uri);
                     q_It.Wait();
+                    await Bot.guit[pos].audioEvents.stuckCheck(pos, ctx);
                 }
                 else if (!wasdisc && Bot.guit[pos].queue.Count < 1 && Bot.guit[pos].playing)
                 {
@@ -109,11 +120,13 @@ namespace MikuMusicSharp.Commands
                     });
                     var q_It = Bot.guit[pos].audioPlay.QueueSong(pos, ctx, uri);
                     q_It.Wait();
+                    await Bot.guit[pos].audioEvents.stuckCheck(pos, ctx);
                 }
                 else
                 {
                     var q_It = Bot.guit[pos].audioPlay.QueueSong(pos, ctx, uri);
                     q_It.Wait();
+                    await Bot.guit[pos].audioEvents.stuckCheck(pos, ctx);
                 }
             }
             catch (Exception ex)
@@ -152,6 +165,9 @@ namespace MikuMusicSharp.Commands
                 Bot.guit[pos].LLGuild.Disconnect();
                 Bot.guit[pos].LLGuild = null;
                 Bot.guit[pos].playing = false;
+                Bot.guit[pos].repeat = false;
+                Bot.guit[pos].repeatAll = false;
+                Bot.guit[pos].shuffle = false;
                 await ctx.RespondAsync("disconnected");
             }
             catch (Exception ex)
@@ -162,7 +178,7 @@ namespace MikuMusicSharp.Commands
         }
 
         [Command("stop")]
-        public async Task LLinkstop(CommandContext ctx)
+        public async Task LLinkstop(CommandContext ctx, string opt = null)
         {
             try
             {
@@ -185,6 +201,20 @@ namespace MikuMusicSharp.Commands
                 if (Bot.guit[pos].playnow.LavaTrack.IsStream)
                 {
                     Bot.guit[pos].playnow.sstop = true;
+                }
+                if (opt == "reset")
+                {
+                    Bot.guit[pos].repeat = false;
+                    Bot.guit[pos].repeatAll = false;
+                    Bot.guit[pos].shuffle = false;
+                    if (Bot.guit[pos].playing)
+                    {
+                        Bot.guit[pos].queue.RemoveRange(1, Bot.guit[pos].queue.Count - 1);
+                    }
+                    else
+                    {
+                        Bot.guit[pos].queue.Clear();
+                    }
                 }
                 var stop = Bot.guit[pos].audioFunc.Stop(pos);
                 stop.Wait();
@@ -301,6 +331,13 @@ namespace MikuMusicSharp.Commands
                 {
                     return;
                 }
+                if (Bot.guit[pos].paused == true)
+                {
+                    var resume = Bot.guit[pos].audioFunc.Resume(pos);
+                    resume.Wait();
+                    await ctx.RespondAsync($"**Resumed**");
+                    return;
+                }
                 var pause = Bot.guit[pos].audioFunc.Pause(pos);
                 pause.Wait();
                 await ctx.RespondAsync($"**Paused**");
@@ -312,7 +349,7 @@ namespace MikuMusicSharp.Commands
             }
         }
 
-        [Command("resume")]
+        [Command("resume"), Aliases("unpause")]
         public async Task LLinkresume(CommandContext ctx)
         {
             try
@@ -557,8 +594,8 @@ namespace MikuMusicSharp.Commands
                 }
                 var con = Bot.guit[0].LLinkCon;
                 var datrack = await con.GetTracksAsync(new Uri(uri));
-                int couldadd = datrack.Count();
-                foreach (var dracks in datrack)
+                int couldadd = datrack.Tracks.Count();
+                foreach (var dracks in datrack.Tracks)
                 {
                     if (dracks.Author == null)
                     {
@@ -572,8 +609,8 @@ namespace MikuMusicSharp.Commands
                         addtime = DateTime.Now
                     });
                 }
-                await ctx.RespondAsync($"Added {datrack.Count()} songs to queue ({Bot.guit[pos].queue.Count} in queue now)");
-                if (couldadd != datrack.Count())
+                await ctx.RespondAsync($"Added {datrack.Tracks.Count()} songs to queue ({Bot.guit[pos].queue.Count} in queue now)");
+                if (couldadd != datrack.Tracks.Count())
                 {
                     await ctx.RespondAsync("Not all Songs were loaded, this could be due to an error or the video being blocked");
                 }
@@ -603,7 +640,7 @@ namespace MikuMusicSharp.Commands
                 ThumbnailUrl = ctx.Client.CurrentUser.AvatarUrl
             };
             var que = Bot.guit[pos].playnow;
-            /*if (que.LavaTrack.Uri.ToString().Contains("youtu"))
+            if (que.LavaTrack.Uri.ToString().Contains("youtu"))
             {
                 try
                 {
@@ -642,7 +679,7 @@ namespace MikuMusicSharp.Commands
                 }
             }
             else
-            {*/
+            {
                 string time1 = "";
                 string time2 = "";
                 if (que.LavaTrack.Length.Hours < 1)
@@ -656,7 +693,7 @@ namespace MikuMusicSharp.Commands
                     time2 = que.LavaTrack.Length.ToString(@"hh\:mm\:ss");
                 }
                 eb.AddField($"{que.LavaTrack.Title} ({time1}/{time2})", $"By {que.LavaTrack.Author}\n[Link]({que.LavaTrack.Uri})\nRequested by {que.requester.Mention}");
-            //}
+            }
             await ctx.RespondAsync(embed: eb.Build());
         }
     }
