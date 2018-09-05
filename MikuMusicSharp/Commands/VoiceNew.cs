@@ -119,6 +119,7 @@ namespace BetaPlush.Commands
             }
             Bot.guit[pos].cmdChannel = ctx.Channel.Id;
             await Task.Run(() => Bot.guit[pos].audioFunc.Repeat(pos));
+            await ctx.RespondAsync($"Repeat set to {Bot.guit[pos].repeat}");
             Console.WriteLine($"[{ctx.Guild.Id}] Repeat set to {Bot.guit[pos].repeat}");
             await Task.CompletedTask;
         }
@@ -134,6 +135,7 @@ namespace BetaPlush.Commands
             }
             Bot.guit[pos].cmdChannel = ctx.Channel.Id;
             await Task.Run(() => Bot.guit[pos].audioFunc.RepeatAll(pos));
+            await ctx.RespondAsync($"Repeat all set to {Bot.guit[pos].repeatAll}");
             Console.WriteLine($"[{ctx.Guild.Id}] RepeatAll set to {Bot.guit[pos].repeatAll}");
             await Task.CompletedTask;
         }
@@ -149,6 +151,7 @@ namespace BetaPlush.Commands
             }
             Bot.guit[pos].cmdChannel = ctx.Channel.Id;
             await Task.Run(() => Bot.guit[pos].audioFunc.Shuffle(pos));
+            await ctx.RespondAsync($"Shuffle set to {Bot.guit[pos].shuffle}");
             Console.WriteLine($"[{ctx.Guild.Id}] Shuffle set to {Bot.guit[pos].shuffle}");
             await Task.CompletedTask;
         }
