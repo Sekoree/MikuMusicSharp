@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MikuMusicSharp.BotClass.BotNew;
 
 namespace MikuMusicSharp.Commands.Audio
 {
@@ -16,7 +17,7 @@ namespace MikuMusicSharp.Commands.Audio
             try
             {
                 var intbi = ctx.Client.GetInteractivity();
-                var chn = ctx.Member?.VoiceState?.Channel;
+                var chn = ctx.Member.VoiceState?.Channel;
                 if (Bot.guit[pos].LLGuild.Channel != chn)
                 {
                     await Task.CompletedTask;

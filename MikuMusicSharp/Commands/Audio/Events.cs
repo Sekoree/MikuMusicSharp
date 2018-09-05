@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
 using DSharpPlus.CommandsNext;
+using MikuMusicSharp.BotClass.BotNew;
 
 namespace MikuMusicSharp.Commands.Audio
 {
@@ -29,7 +30,6 @@ namespace MikuMusicSharp.Commands.Audio
                 });
                 Console.WriteLine("LL Stream Error");
             }
-            Console.WriteLine("end event triggered");
             Bot.guit[pos].playing = false;
             await Task.CompletedTask;
         }

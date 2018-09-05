@@ -9,6 +9,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Google.Apis.YouTube.v3;
 using Google.Apis.Services;
+using MikuMusicSharp.BotClass.BotNew;
 
 namespace MikuMusicSharp.Commands
 {

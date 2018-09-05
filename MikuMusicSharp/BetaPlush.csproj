@@ -10,15 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00521" />
-    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-nightly-00521" />
-    <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-nightly-00521" />
-    <PackageReference Include="DSharpPlus.Lavalink" Version="4.0.0-nightly-00521" />
+    <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00522" />
+    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-nightly-00522" />
+    <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-nightly-00522" />
+    <PackageReference Include="DSharpPlus.Lavalink" Version="4.0.0-nightly-00522" />
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.35.1.1226" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Commands\" />
   </ItemGroup>
 
 </Project>
