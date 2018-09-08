@@ -15,7 +15,7 @@ namespace BetaPlush.Commands
 {
     class VoiceNew : BaseCommandModule
     {
-        [Command("join"), Description("Bot join voicechannel")]
+        [Command("join"), Description("Bot join voicechannel"), RequireBotPermissions(DSharpPlus.Permissions.SendMessages)]
         public async Task Join(CommandContext ctx)
         {
             var chn = ctx.Member.VoiceState?.Channel;
@@ -35,7 +35,7 @@ namespace BetaPlush.Commands
             await ctx.RespondAsync("Heya!");
             await Task.CompletedTask;
         }
-        [Command("leave"), Description("Bot leaves voicechannel")]
+        [Command("leave"), Description("Bot leaves voicechannel"), RequireBotPermissions(DSharpPlus.Permissions.SendMessages)]
         public async Task Leave(CommandContext ctx, string LeaveOptions = null)
         {
             var chn = ctx.Member.VoiceState?.Channel;
@@ -55,7 +55,7 @@ namespace BetaPlush.Commands
                 Bot.guit[pos].LLGuild.TrackStuck -= Bot.guit[pos].audioEvents.PlayStu;
                 Bot.guit[pos].LLGuild = null;
                 Bot.guit[pos].queue.Clear();
-                Bot.guit[pos].playnow = null;
+                Bot.guit[pos].playnow = new Gsets3();
             } else {
                 await Task.Run(() => Bot.guit[pos].audioFunc.Leave(pos));
                 Bot.guit[pos].LLGuild.Disconnect();
@@ -68,7 +68,7 @@ namespace BetaPlush.Commands
             Console.WriteLine($"[{ctx.Guild.Id}] Left VC");
             await Task.CompletedTask;
         }
-        [Command("pause"), Description("pause playback")]
+        [Command("pause"), Description("pause playback"), RequireBotPermissions(DSharpPlus.Permissions.SendMessages)]
         public async Task Pause(CommandContext ctx)
         {
             var chn = ctx.Member.VoiceState?.Channel;
@@ -90,7 +90,7 @@ namespace BetaPlush.Commands
             }
             await Task.CompletedTask;
         }
-        [Command("resume"), Aliases("unpause")]
+        [Command("resume"), Aliases("unpause"), RequireBotPermissions(DSharpPlus.Permissions.SendMessages)]
         public async Task Resume(CommandContext ctx)
         {
             var chn = ctx.Member.VoiceState?.Channel;
@@ -107,7 +107,7 @@ namespace BetaPlush.Commands
             Console.WriteLine($"[{ctx.Guild.Id}] Resumed");
             await Task.CompletedTask;
         }
-        [Command("repeat"), Aliases("r")]
+        [Command("repeat"), Aliases("r"), RequireBotPermissions(DSharpPlus.Permissions.SendMessages)]
         public async Task Repeat(CommandContext ctx)
         {
             var chn = ctx.Member.VoiceState?.Channel;
@@ -123,7 +123,7 @@ namespace BetaPlush.Commands
             Console.WriteLine($"[{ctx.Guild.Id}] Repeat set to {Bot.guit[pos].repeat}");
             await Task.CompletedTask;
         }
-        [Command("repeatall"), Aliases("ra")]
+        [Command("repeatall"), Aliases("ra"), RequireBotPermissions(DSharpPlus.Permissions.SendMessages)]
         public async Task RepeatAll(CommandContext ctx)
         {
             var chn = ctx.Member.VoiceState?.Channel;
@@ -139,7 +139,7 @@ namespace BetaPlush.Commands
             Console.WriteLine($"[{ctx.Guild.Id}] RepeatAll set to {Bot.guit[pos].repeatAll}");
             await Task.CompletedTask;
         }
-        [Command("shuffle"), Aliases("s")]
+        [Command("shuffle"), Aliases("s"), RequireBotPermissions(DSharpPlus.Permissions.SendMessages)]
         public async Task Shuffle(CommandContext ctx)
         {
             var chn = ctx.Member.VoiceState?.Channel;
@@ -155,7 +155,7 @@ namespace BetaPlush.Commands
             Console.WriteLine($"[{ctx.Guild.Id}] Shuffle set to {Bot.guit[pos].shuffle}");
             await Task.CompletedTask;
         }
-        [Command("playlist"), Aliases("pp", "pl")]
+        [Command("playlist"), Aliases("pp", "pl"), RequireBotPermissions(DSharpPlus.Permissions.SendMessages)]
         public async Task Playlist(CommandContext ctx, string uri)
         {
             var chn = ctx.Member.VoiceState?.Channel;
@@ -191,7 +191,7 @@ namespace BetaPlush.Commands
             Console.WriteLine($"[{ctx.Guild.Id}] Playlist loaded {uri}");
             await Task.CompletedTask;
         }
-        [Command("queueclear"), Aliases("qc")]
+        [Command("queueclear"), Aliases("qc"), RequireBotPermissions(DSharpPlus.Permissions.SendMessages)]
         public async Task QueueClear(CommandContext ctx)
         {
             var chn = ctx.Member.VoiceState?.Channel;
@@ -210,7 +210,7 @@ namespace BetaPlush.Commands
             Console.WriteLine($"[{ctx.Guild.Id}] Queue cleard");
             await ctx.RespondAsync("Cleared Queue");
         }
-        [Command("queue"), Aliases("q")]
+        [Command("queue"), Aliases("q"), RequireBotPermissions(DSharpPlus.Permissions.EmbedLinks & DSharpPlus.Permissions.SendMessages)]
         public async Task Queue(CommandContext ctx)
         {
             var chn = ctx.Member.VoiceState?.Channel;
@@ -225,7 +225,7 @@ namespace BetaPlush.Commands
             Console.WriteLine($"[{ctx.Guild.Id}] Showing queue");
             await Task.CompletedTask;
         }
-        [Command("volume"), Aliases("vol")]
+        [Command("volume"), Aliases("vol"), RequireBotPermissions(DSharpPlus.Permissions.SendMessages)]
         public async Task Volume(CommandContext ctx, int vol = 100)
         {
             var chn = ctx.Member.VoiceState?.Channel;
@@ -242,7 +242,7 @@ namespace BetaPlush.Commands
             Console.WriteLine($"[{ctx.Guild.Id}] Volume changed {vol}");
             await Task.CompletedTask;
         }
-        [Command("queueremove"), Aliases("qr")]
+        [Command("queueremove"), Aliases("qr"), RequireBotPermissions(DSharpPlus.Permissions.SendMessages)]
         public async Task QueueRemove(CommandContext ctx, int r)
         {
             var chn = ctx.Member.VoiceState?.Channel;
@@ -264,7 +264,7 @@ namespace BetaPlush.Commands
             Console.WriteLine($"[{ctx.Guild.Id}] Song Removed");
             await Task.CompletedTask;
         }
-        [Command("nowplaying"), Aliases("np")]
+        [Command("nowplaying"), Aliases("np"), RequireBotPermissions(DSharpPlus.Permissions.SendMessages & DSharpPlus.Permissions.EmbedLinks)]
         public async Task NowPlaying(CommandContext ctx)
         {
             var chn = ctx.Member.VoiceState?.Channel;
@@ -327,7 +327,7 @@ namespace BetaPlush.Commands
             Console.WriteLine($"[{ctx.Guild.Id}] NowPlaying");
             await Task.CompletedTask;
         }
-        [Command("stop")]
+        [Command("stop"), RequireBotPermissions(DSharpPlus.Permissions.SendMessages)]
         public async Task Stop(CommandContext ctx, string Options = null)
         {
             var chn = ctx.Member.VoiceState?.Channel;
@@ -339,7 +339,7 @@ namespace BetaPlush.Commands
                 return;
             } if (Bot.guit[pos].playnow.LavaTrack.IsStream) {
                 Bot.guit[pos].playnow.sstop = true;
-            } if (Options == "reset") {
+            } if (Options == "reset" || Options == "reset") {
                 Bot.guit[pos].repeat = false;
                 Bot.guit[pos].repeatAll = false;
                 Bot.guit[pos].shuffle = false;
@@ -357,7 +357,7 @@ namespace BetaPlush.Commands
             await ctx.RespondAsync("Stopped!");
             await Task.CompletedTask;
         }
-        [Command("play"),Aliases("p"), Cooldown(1, 5, CooldownBucketType.Guild)]
+        [Command("play"),Aliases("p"), Cooldown(1, 5, CooldownBucketType.Guild), RequireBotPermissions(DSharpPlus.Permissions.SendMessages)]
         public async Task Play(CommandContext ctx, [RemainingText] string Song = null){
             var chn = ctx.Member.VoiceState?.Channel;
             var bot = await ctx.Guild.GetMemberAsync(ctx.Client.CurrentUser.Id);
@@ -402,7 +402,7 @@ namespace BetaPlush.Commands
             }
             await Task.CompletedTask;
         }
-        [Command("skip")]
+        [Command("skip"), RequireBotPermissions(DSharpPlus.Permissions.SendMessages)]
         public async Task Skip(CommandContext ctx)
         {
             var chn = ctx.Member.VoiceState?.Channel;

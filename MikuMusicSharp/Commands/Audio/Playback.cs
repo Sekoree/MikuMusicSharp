@@ -18,8 +18,7 @@ namespace MikuMusicSharp.Commands.Audio
                 Console.WriteLine($"[{ctx.Guild.Id}] Resuming queue");
             }
             if (song != null) {
-                var q = QueueSong(pos, ctx, song);
-                q.Wait();
+                await Task.Run(() => QueueSong(pos, ctx, song));
             }       
             QueueLoop(pos, ctx);
             await Task.CompletedTask;

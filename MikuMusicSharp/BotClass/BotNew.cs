@@ -143,8 +143,6 @@ namespace MikuMusicSharp.BotClass.BotNew
                     await Task.CompletedTask;
                 };
             }
-
-            bot.GuildDownloadCompleted += async e =>
             {
                 DiscordActivity test = new DiscordActivity
                 {
@@ -282,6 +280,10 @@ namespace MikuMusicSharp.BotClass.BotNew
                 foreach(CheckBaseAttribute a in exx.FailedChecks){
                     if (a is CooldownAttribute cd){
                         await ex.Context.RespondAsync($"Cooldown, {(int)cd.GetRemainingCooldown(ex.Context).TotalSeconds}s left");
+                    }
+                    if (a is RequireBotPermissionsAttribute bpa)
+                    {
+                        await ex.Context.Member.SendMessageAsync($"Heya, sorry for the DM but I need to be able to ``Send Messages`` and ``Embed Links`` in order to use the music functions!");
                     }
                 }
             }
