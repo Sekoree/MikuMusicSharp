@@ -261,3 +261,4 @@ __pycache__/
 *.pyc
 .vscode/launch.json
 .vscode/tasks.json
+MikuMusicSharp/notes.txt
