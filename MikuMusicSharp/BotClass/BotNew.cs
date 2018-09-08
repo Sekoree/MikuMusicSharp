@@ -26,6 +26,7 @@ namespace MikuMusicSharp.BotClass.BotNew
             RestEndpoint = new ConnectionEndpoint { Hostname = "localhost", Port = 2336 }
         };
         public static List<Gsets> guit = new List<Gsets>();
+        public int ok = 0;
 
         public Bot()
         {
@@ -139,11 +140,20 @@ namespace MikuMusicSharp.BotClass.BotNew
                             audioEvents = new Commands.Audio.Events(),
                             stoppin = false
                         });
+                        ok++;
                     }
                     await Task.CompletedTask;
                 };
             }
+            bot.GuildDownloadCompleted += async e =>
+            bot.Heartbeated += async e =>
             {
+                var me = await DblApi.GetMeAsync();
+                await me.UpdateStatsAsync(ok, e.Client.ShardCount);
+                Console.WriteLine($"DBL Updated: {ok} Shards: {e.Client.ShardCount}");
+            };
+            bot.GuildDownloadCompleted += async e =>
+            {//
                 DiscordActivity test = new DiscordActivity
                 {
                     Name = "New Music System! || m%help",
@@ -182,6 +192,7 @@ namespace MikuMusicSharp.BotClass.BotNew
                             {
                                 Console.WriteLine("Derpy guild");
                             }
+                            ok++;
                         }
                     }
                     Console.WriteLine("GuildList Complete");
