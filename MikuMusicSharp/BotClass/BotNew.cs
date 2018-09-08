@@ -22,8 +22,8 @@ namespace MikuMusicSharp.BotClass.BotNew
         private CancellationTokenSource _cts;
         public static LavalinkConfiguration lcfg = new LavalinkConfiguration
         {
-            SocketEndpoint = new ConnectionEndpoint { Hostname = "localhost", Port = 8090 },
-            RestEndpoint = new ConnectionEndpoint { Hostname = "localhost", Port = 2336 }
+            SocketEndpoint = new ConnectionEndpoint { Hostname = "localhost", Port = 8091 },
+            RestEndpoint = new ConnectionEndpoint { Hostname = "localhost", Port = 2337 }
         };
         public static List<Gsets> guit = new List<Gsets>();
         public int ok = 0;
@@ -49,7 +49,7 @@ namespace MikuMusicSharp.BotClass.BotNew
 
             var commands = await bot.UseCommandsNextAsync(new CommandsNextConfiguration()
             {
-                StringPrefixes = (new[] { "!" }),
+                StringPrefixes = (new[] { "m%" }),
                 EnableDefaultHelp = false,
                 IgnoreExtraArguments = false,
                 CaseSensitive = false
@@ -145,15 +145,14 @@ namespace MikuMusicSharp.BotClass.BotNew
                     await Task.CompletedTask;
                 };
             }
-            bot.GuildDownloadCompleted += async e =>
             bot.Heartbeated += async e =>
             {
                 var me = await DblApi.GetMeAsync();
-                await me.UpdateStatsAsync(ok, e.Client.ShardCount);
+                await me.UpdateStatsAsync(ok);
                 Console.WriteLine($"DBL Updated: {ok} Shards: {e.Client.ShardCount}");
             };
             bot.GuildDownloadCompleted += async e =>
-            {//
+            {
                 DiscordActivity test = new DiscordActivity
                 {
                     Name = "New Music System! || m%help",
