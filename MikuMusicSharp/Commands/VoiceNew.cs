@@ -9,6 +9,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Google.Apis.YouTube.v3;
 using Google.Apis.Services;
+using MikuMusicSharp.Commands.Audio;
 using MikuMusicSharp.BotClass.BotNew;
 
 namespace BetaPlush.Commands
@@ -28,9 +29,9 @@ namespace BetaPlush.Commands
             }
             Bot.guit[pos].cmdChannel = ctx.Channel.Id;
             Bot.guit[pos].LLGuild = await con.ConnectAsync(chn);
-            Bot.guit[pos].LLGuild.PlaybackFinished += Bot.guit[pos].audioEvents.PlayFin;
-            Bot.guit[pos].LLGuild.TrackException += Bot.guit[pos].audioEvents.PlayErr;
-            Bot.guit[pos].LLGuild.TrackStuck += Bot.guit[pos].audioEvents.PlayStu;
+            Bot.guit[pos].LLGuild.PlaybackFinished += Events.PlayFin;
+            Bot.guit[pos].LLGuild.TrackException += Events.PlayErr;
+            Bot.guit[pos].LLGuild.TrackStuck += Events.PlayStu;
             Console.WriteLine($"[{ctx.Guild.Id}] Joined");
             await ctx.RespondAsync("Heya!");
             await Task.CompletedTask;
@@ -48,20 +49,20 @@ namespace BetaPlush.Commands
             }
             Bot.guit[pos].cmdChannel = ctx.Channel.Id;
             if (LeaveOptions == "reset" || LeaveOptions == "r") {
-                await Task.Run(() => Bot.guit[pos].audioFunc.Leave(pos));
+                await Task.Run(() => Functions.Leave(pos));
                 Bot.guit[pos].LLGuild.Disconnect();
-                Bot.guit[pos].LLGuild.PlaybackFinished -= Bot.guit[pos].audioEvents.PlayFin;
-                Bot.guit[pos].LLGuild.TrackException -= Bot.guit[pos].audioEvents.PlayErr;
-                Bot.guit[pos].LLGuild.TrackStuck -= Bot.guit[pos].audioEvents.PlayStu;
+                Bot.guit[pos].LLGuild.PlaybackFinished -= Events.PlayFin;
+                Bot.guit[pos].LLGuild.TrackException -= Events.PlayErr;
+                Bot.guit[pos].LLGuild.TrackStuck -= Events.PlayStu;
                 Bot.guit[pos].LLGuild = null;
                 Bot.guit[pos].queue.Clear();
                 Bot.guit[pos].playnow = new Gsets3();
             } else {
-                await Task.Run(() => Bot.guit[pos].audioFunc.Leave(pos));
+                await Task.Run(() => Functions.Leave(pos));
                 Bot.guit[pos].LLGuild.Disconnect();
-                Bot.guit[pos].LLGuild.PlaybackFinished -= Bot.guit[pos].audioEvents.PlayFin;
-                Bot.guit[pos].LLGuild.TrackException -= Bot.guit[pos].audioEvents.PlayErr;
-                Bot.guit[pos].LLGuild.TrackStuck -= Bot.guit[pos].audioEvents.PlayStu;
+                Bot.guit[pos].LLGuild.PlaybackFinished -= Events.PlayFin;
+                Bot.guit[pos].LLGuild.TrackException -= Events.PlayErr;
+                Bot.guit[pos].LLGuild.TrackStuck -= Events.PlayStu;
                 Bot.guit[pos].LLGuild = null;
             }
             await ctx.RespondAsync("Bye bye~! uwu");
@@ -80,11 +81,11 @@ namespace BetaPlush.Commands
             }
             Bot.guit[pos].cmdChannel = ctx.Channel.Id;
             if (Bot.guit[pos].paused == true) {
-                await Task.Run(() => Bot.guit[pos].audioFunc.Resume(pos));
+                await Task.Run(() => Functions.Resume(pos));
                 await ctx.RespondAsync($"**Resumed**");
                 Console.WriteLine($"[{ctx.Guild.Id}] Resumed");
             } else {
-                await Task.Run(() => Bot.guit[pos].audioFunc.Pause(pos));
+                await Task.Run(() => Functions.Pause(pos));
                 await ctx.RespondAsync($"**Paused**");
                 Console.WriteLine($"[{ctx.Guild.Id}] Paused");
             }
@@ -101,8 +102,8 @@ namespace BetaPlush.Commands
                 return;
             }
             Bot.guit[pos].cmdChannel = ctx.Channel.Id;
-            if (Bot.guit[pos].playing) await Task.Run(() => Bot.guit[pos].audioFunc.Resume(pos));
-            else Bot.guit[pos].audioPlay.QueueLoop(pos, ctx);
+            if (Bot.guit[pos].playing) await Task.Run(() => Functions.Resume(pos));
+            else Playback.QueueLoop(pos, ctx);
             await ctx.RespondAsync($"**Resumed**");
             Console.WriteLine($"[{ctx.Guild.Id}] Resumed");
             await Task.CompletedTask;
@@ -118,7 +119,8 @@ namespace BetaPlush.Commands
                 return;
             }
             Bot.guit[pos].cmdChannel = ctx.Channel.Id;
-            await Task.Run(() => Bot.guit[pos].audioFunc.Repeat(pos));
+            var r = Functions.Repeat(pos);
+            r.Wait();
             await ctx.RespondAsync($"Repeat set to {Bot.guit[pos].repeat}");
             Console.WriteLine($"[{ctx.Guild.Id}] Repeat set to {Bot.guit[pos].repeat}");
             await Task.CompletedTask;
@@ -134,7 +136,8 @@ namespace BetaPlush.Commands
                 return;
             }
             Bot.guit[pos].cmdChannel = ctx.Channel.Id;
-            await Task.Run(() => Bot.guit[pos].audioFunc.RepeatAll(pos));
+            var ra = Functions.RepeatAll(pos);
+            ra.Wait();
             await ctx.RespondAsync($"Repeat all set to {Bot.guit[pos].repeatAll}");
             Console.WriteLine($"[{ctx.Guild.Id}] RepeatAll set to {Bot.guit[pos].repeatAll}");
             await Task.CompletedTask;
@@ -150,7 +153,8 @@ namespace BetaPlush.Commands
                 return;
             }
             Bot.guit[pos].cmdChannel = ctx.Channel.Id;
-            await Task.Run(() => Bot.guit[pos].audioFunc.Shuffle(pos));
+            var s = Functions.Shuffle(pos);
+            s.Wait();
             await ctx.RespondAsync($"Shuffle set to {Bot.guit[pos].shuffle}");
             Console.WriteLine($"[{ctx.Guild.Id}] Shuffle set to {Bot.guit[pos].shuffle}");
             await Task.CompletedTask;
@@ -221,7 +225,7 @@ namespace BetaPlush.Commands
                 return;
             }
             Bot.guit[pos].cmdChannel = ctx.Channel.Id;
-            await Task.Run(() => Bot.guit[pos].audioQueue.QueueList(pos, ctx));
+            await Task.Run(() => MikuMusicSharp.Commands.Audio.Queue.QueueList(pos, ctx));
             Console.WriteLine($"[{ctx.Guild.Id}] Showing queue");
             await Task.CompletedTask;
         }
@@ -257,7 +261,7 @@ namespace BetaPlush.Commands
             int pos3 = ctx.Member.Roles.ToList().FindIndex(x => x.CheckPermission(DSharpPlus.Permissions.Administrator) == DSharpPlus.PermissionLevel.Allowed);
             if (ctx.Member == Bot.guit[pos].queue[r].requester || pos2 != -1 || pos3 != -1) {
                 await ctx.RespondAsync($"Removed: **{Bot.guit[pos].queue[r].LavaTrack.Title}** by **{Bot.guit[pos].queue[r].LavaTrack.Author}**");
-                await Task.Run(() => Bot.guit[pos].audioQueue.queueRemove(pos, r));
+                await Task.Run(() => MikuMusicSharp.Commands.Audio.Queue.queueRemove(pos, r));
             } else {
                 await ctx.RespondAsync("You need the manage messages permission to delete others tracks");
             }
@@ -339,7 +343,7 @@ namespace BetaPlush.Commands
                 return;
             } if (Bot.guit[pos].playnow.LavaTrack.IsStream) {
                 Bot.guit[pos].playnow.sstop = true;
-            } if (Options == "reset" || Options == "reset") {
+            } if (Options == "reset" || Options == "r") {
                 Bot.guit[pos].repeat = false;
                 Bot.guit[pos].repeatAll = false;
                 Bot.guit[pos].shuffle = false;
@@ -349,8 +353,7 @@ namespace BetaPlush.Commands
                     Bot.guit[pos].queue.Clear();
                 }
             }
-            var stop = Bot.guit[pos].audioFunc.Stop(pos);
-            stop.Wait();
+            await Task.Run(() => Functions.Stop(pos));
             await Task.Delay(2500);
             Bot.guit[pos].stoppin = false;
             Console.WriteLine($"[{ctx.Guild.Id}] Stopped");
@@ -371,9 +374,9 @@ namespace BetaPlush.Commands
                 if (Bot.guit[pos].LLGuild == null)
                 {
                     Bot.guit[pos].LLGuild = await con.ConnectAsync(chn);
-                    Bot.guit[pos].LLGuild.PlaybackFinished += Bot.guit[pos].audioEvents.PlayFin;
-                    Bot.guit[pos].LLGuild.TrackException += Bot.guit[pos].audioEvents.PlayErr;
-                    Bot.guit[pos].LLGuild.TrackStuck += Bot.guit[pos].audioEvents.PlayStu;
+                    Bot.guit[pos].LLGuild.PlaybackFinished += Events.PlayFin;
+                    Bot.guit[pos].LLGuild.TrackException += Events.PlayErr;
+                    Bot.guit[pos].LLGuild.TrackStuck += Events.PlayStu;
                 }
                 else
                 {
@@ -385,7 +388,7 @@ namespace BetaPlush.Commands
             if(QueueCount != 0 && !B.playing && Song == null) {
                 Console.WriteLine($"[{ctx.Guild.Id}] Continuing queue");
                 await ctx.RespondAsync("continouing queue/starting preloaded playlist");
-                Bot.guit[pos].audioPlay.QueueLoop(pos, ctx);
+                Playback.QueueLoop(pos, ctx);
             }
             else if(QueueCount == 0 && !B.playing && Song == null) {
                 Console.WriteLine($"[{ctx.Guild.Id}] No Song Proviuded");
@@ -393,12 +396,11 @@ namespace BetaPlush.Commands
             }
             else if(QueueCount == 0 && !B.playing && Song != null) {
                 Console.WriteLine($"[{ctx.Guild.Id}] Playing {Song}");
-                Bot.guit[pos].audioPlay.PlaySong(pos, ctx, Song);
+                Playback.PlaySong(pos, ctx, Song);
             }
             else {
                 Console.WriteLine($"[{ctx.Guild.Id}] Adding {Song}");
-                var Q = Bot.guit[pos].audioPlay.QueueSong(pos, ctx, Song);
-                Q.Wait();
+                await Task.Run(() => Playback.QueueSong(pos, ctx, Song));
             }
             await Task.CompletedTask;
         }
@@ -414,7 +416,12 @@ namespace BetaPlush.Commands
             } if (Bot.guit[pos].playnow.LavaTrack.IsStream) {
                 Bot.guit[pos].playnow.sstop = true;
             }
-            var stop = Bot.guit[pos].audioFunc.Skip(pos);
+            if (Bot.guit[pos].queue.Count > 1 && Bot.guit[pos].repeat)
+            {
+                try { Bot.guit[pos].queue.RemoveAt(0); }
+                catch { }
+            }
+            var stop = Functions.Skip(pos);
             stop.Wait();
             Console.WriteLine($"[{ctx.Guild.Id}] Skipped");
             await ctx.RespondAsync("Skipped!");

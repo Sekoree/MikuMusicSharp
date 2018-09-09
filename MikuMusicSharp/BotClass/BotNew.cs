@@ -13,6 +13,8 @@ using DSharpPlus.Net.Udp;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using DSharpPlus.CommandsNext.Attributes;
+using DiscordBotsList.Api;
+using MikuMusicSharp.Commands.Audio;
 
 namespace MikuMusicSharp.BotClass.BotNew
 {
@@ -134,14 +136,16 @@ namespace MikuMusicSharp.BotClass.BotNew
                             repeatAll = false,
                             alone = false,
                             paused = true,
-                            audioPlay = new Commands.Audio.Playback(),
-                            audioFunc = new Commands.Audio.Functions(),
-                            audioQueue = new Commands.Audio.Queue(),
-                            audioEvents = new Commands.Audio.Events(),
                             stoppin = false
                         });
                         ok++;
                     }
+                    await Task.CompletedTask;
+                };
+
+                shard.Value.GuildDeleted += async e =>
+                {
+                    ok--;
                     await Task.CompletedTask;
                 };
             }
@@ -181,10 +185,6 @@ namespace MikuMusicSharp.BotClass.BotNew
                                 repeatAll = false,
                                 alone = false,
                                 paused = true,
-                                audioPlay = new Commands.Audio.Playback(),
-                                audioFunc = new Commands.Audio.Functions(),
-                                audioQueue = new Commands.Audio.Queue(),
-                                audioEvents = new Commands.Audio.Events(),
                                 stoppin = false
                             });
                             if (guilds.Value.Id == 336039472250748928)
@@ -264,9 +264,9 @@ namespace MikuMusicSharp.BotClass.BotNew
                 {
                     if (DateTime.Now.Subtract(guit[pos].offtime).TotalMinutes > 5)
                     {
-                        guit[pos].LLGuild.PlaybackFinished -= guit[pos].audioEvents.PlayFin;
-                        guit[pos].LLGuild.TrackStuck -= guit[pos].audioEvents.PlayStu;
-                        guit[pos].LLGuild.TrackException -= guit[pos].audioEvents.PlayErr;
+                        guit[pos].LLGuild.PlaybackFinished -= Events.PlayFin;
+                        guit[pos].LLGuild.TrackStuck -= Events.PlayStu;
+                        guit[pos].LLGuild.TrackException -= Events.PlayErr;
                         guit[pos].LLGuild.Disconnect();
                         guit[pos].LLGuild = null;
                         guit[pos].offtime = DateTime.Now;
@@ -337,10 +337,6 @@ namespace MikuMusicSharp.BotClass.BotNew
         public bool stoppin { get; set; }
         public bool alone { get; set; }
         public ulong cmdChannel { get; set; }
-        public Commands.Audio.Playback audioPlay { get; set; }
-        public Commands.Audio.Functions audioFunc { get; set; }
-        public Commands.Audio.Queue audioQueue { get; set; }
-        public Commands.Audio.Events audioEvents { get; set; }
     }
 
     public class Gsets2

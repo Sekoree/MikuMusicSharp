@@ -12,7 +12,7 @@ namespace MikuMusicSharp.Commands.Audio
 {
     public class Queue
     {
-        public async Task QueueList(int pos,CommandContext ctx)
+        public static async Task QueueList(int pos,CommandContext ctx)
         {
             try
             {
@@ -159,13 +159,13 @@ namespace MikuMusicSharp.Commands.Audio
             await Task.CompletedTask;
         }
 
-        public Task queueRemove(int pos, int num)
+        public static Task queueRemove(int pos, int num)
         {
             Bot.guit[pos].queue.RemoveAt(num);
             return Task.CompletedTask;
         }
 
-        public Task queueRemoveSome(int pos, int num, int maxVal)
+        public static Task queueRemoveSome(int pos, int num, int maxVal)
         {
             Bot.guit[pos].queue.RemoveRange(num, maxVal);
             return Task.CompletedTask;
