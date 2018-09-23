@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using DSharpPlus.CommandsNext.Attributes;
 using DiscordBotsList.Api;
-using MikuMusicSharp.Commands.Audio;
+using someBot.Commands.MusicEx;
 
 namespace MikuMusicSharp.BotClass.BotNew
 {
@@ -60,7 +60,7 @@ namespace MikuMusicSharp.BotClass.BotNew
             var llink = await bot.UseLavalinkAsync();
             foreach (var cmd in commands)
             {
-                cmd.Value.RegisterCommands<BetaPlush.Commands.VoiceNew>();
+                cmd.Value.RegisterCommands<someBot.Commands.Music>();
                 cmd.Value.CommandErrored += Bot_CMDErr;
             }
             bot.ClientErrored += this.Bot_ClientErrored;
@@ -78,41 +78,28 @@ namespace MikuMusicSharp.BotClass.BotNew
                 {
                     try
                     {
+                        var con = guit[0].LLinkCon;
                         var pos = guit.FindIndex(x => x.GID == e.Guild.Id);
-                        if (pos != -1)
+                        if (pos == -1 || !con.IsConnected || con == null) { await Task.CompletedTask; return; }
+                        var norm = e?.Channel?.Id;
+                        var afte = e?.After?.Channel?.Id;
+                        var befo = e?.Before?.Channel?.Id;
+                        if (norm == guit[pos].LLGuild?.Channel?.Id || afte == guit[pos].LLGuild?.Channel?.Id || befo == guit[pos].LLGuild?.Channel?.Id)
                         {
-                            await Task.Delay(500);
-                            if (guit[pos].LLGuild.Channel.Id == e.Before.Channel.Id)
+                            if (guit[pos].LLGuild?.Channel?.Users.Where(x => !x.IsBot).Count() == 0)
                             {
-                                if (guit[pos].LLGuild.Channel.Users.Where(x => x.IsBot == false).Count() == 0)
-                                {
-                                    guit[pos].alone = true;
-                                }
-                                else
-                                {
-                                    guit[pos].alone = false;
-                                }
-                                if (guit[pos].LLGuild.Channel.Users.Where(x => x.IsBot == false).Count() == 0 && guit[pos].queue.Count > 0 && guit[pos].LLGuild.Channel.Id == e.Before.Channel.Id && !guit[pos].paused)
-                                {
-                                    await e.Guild.GetChannel(guit[pos].cmdChannel).SendMessageAsync("Playback was paused since everybody left the voicechannel, use ``m!resume`` to unpause");
-                                    guit[pos].LLGuild.Pause();
-                                    guit[pos].paused = true;
-                                }
-                                handleVoidisc(pos);
+                                guit[pos].paused = true;
+                                await Task.Run(() => guit[pos].AudioFunctions.Pause(pos));
+                                await e.Guild.GetChannel(guit[pos].cmdChannel).SendMessageAsync("Playback was paused since everybodey left the channel! uns ``m!resume`` to resume, otherwise I'll also disconnect in ~5min uwu");
+                                var haDi = handleVoidisc(pos);
+                                haDi.Wait(millisecondsTimeout: 2500);
                             }
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        try
-                        {
-                            var pos = guit.FindIndex(x => x.GID == e.Guild.Id);
-                            if (pos != -1)
-                            {
-                                handleVoidisc(pos);
-                            }
-                        }
-                        catch { }
+                        Console.WriteLine(ex.Message);
+                        Console.WriteLine(ex.StackTrace);
                     }
                     await Task.CompletedTask;
                 };
@@ -134,9 +121,11 @@ namespace MikuMusicSharp.BotClass.BotNew
                             playing = false,
                             rAint = 0,
                             repeatAll = false,
-                            alone = false,
-                            paused = true,
-                            stoppin = false
+                            AudioEvents = new LLEvents(),
+                            AudioFunctions = new Functions(),
+                            AudioQueue = new Queue(),
+                            sstop = false,
+                            paused = false
                         });
                         ok++;
                     }
@@ -149,12 +138,12 @@ namespace MikuMusicSharp.BotClass.BotNew
                     await Task.CompletedTask;
                 };
             }
-            bot.Heartbeated += async e =>
-            {
-                var me = await DblApi.GetMeAsync();
-                await me.UpdateStatsAsync(ok);
-                Console.WriteLine($"DBL Updated: {ok} Shards: {e.Client.ShardCount}");
-            };
+            //bot.Heartbeated += async e =>
+            //{
+            //    var me = await DblApi.GetMeAsync();
+            //    await me.UpdateStatsAsync(ok);
+            //    Console.WriteLine($"DBL Updated: {ok} Shards: {e.Client.ShardCount}");
+            //};
             bot.GuildDownloadCompleted += async e =>
             {
                 DiscordActivity test = new DiscordActivity
@@ -173,7 +162,7 @@ namespace MikuMusicSharp.BotClass.BotNew
                             guit.Add(new Gsets
                             {
                                 GID = guilds.Value.Id,
-                                prefix = new List<string>(new string[] { "%" }),
+                                prefix = new List<string>(new string[] { "m%" }),
                                 queue = new List<Gsets2>(),
                                 playnow = new Gsets3(),
                                 repeat = false,
@@ -183,9 +172,11 @@ namespace MikuMusicSharp.BotClass.BotNew
                                 playing = false,
                                 rAint = 0,
                                 repeatAll = false,
-                                alone = false,
-                                paused = true,
-                                stoppin = false
+                                AudioEvents = new LLEvents(),
+                                AudioFunctions = new Functions(),
+                                AudioQueue = new Queue(),
+                                sstop = false,
+                                paused = false
                             });
                             if (guilds.Value.Id == 336039472250748928)
                             {
@@ -255,32 +246,41 @@ namespace MikuMusicSharp.BotClass.BotNew
             Console.WriteLine(value);
         }
 
-        public async void handleVoidisc(int pos) //if a message needs to be sent to another channel, in commands this is not needed
+        public async Task handleVoidisc(int pos) //if a message needs to be sent to another channel, in commands this is not needed
         {
             try
             {
                 guit[pos].offtime = DateTime.Now;
-                while (guit[pos].alone || guit[pos].queue.Count < 1)
+                await Task.CompletedTask;
+                while (guit[pos].LLGuild.Channel.Users.Where(x => !x.IsBot).Count() == 0 || guit[pos].queue.Count < 1)
                 {
+                    //Console.WriteLine("Disc");
                     if (DateTime.Now.Subtract(guit[pos].offtime).TotalMinutes > 5)
                     {
-                        guit[pos].LLGuild.PlaybackFinished -= Events.PlayFin;
-                        guit[pos].LLGuild.TrackStuck -= Events.PlayStu;
-                        guit[pos].LLGuild.TrackException -= Events.PlayErr;
+                        guit[pos].LLGuild.PlaybackFinished -= guit[pos].AudioEvents.PlayFin;
+                        guit[pos].LLGuild.TrackStuck -= guit[pos].AudioEvents.PlayStu;
+                        guit[pos].LLGuild.TrackException -= guit[pos].AudioEvents.PlayErr;
                         guit[pos].LLGuild.Disconnect();
+                        guit[pos].paused = false;
+                        guit[pos].rAint = 0;
+                        guit[pos].repeat = false;
+                        guit[pos].repeatAll = false;
+                        guit[pos].shuffle = false;
+                        guit[pos].queue.Clear();
+                        guit[pos].playnow = new Gsets3();
+                        guit[pos].playing = false;
                         guit[pos].LLGuild = null;
                         guit[pos].offtime = DateTime.Now;
-                        guit[pos].paused = false;
                         break;
                     }
                     else
                     {
                         await Task.Delay(10000);
                     }
-
                 }
             }
             catch { }
+            await Task.CompletedTask;
         }
 
         private async Task Bot_CMDErr(CommandErrorEventArgs ex) //if bot error
@@ -333,10 +333,12 @@ namespace MikuMusicSharp.BotClass.BotNew
         public int rAint { get; set; }
         public bool shuffle { get; set; }
         public bool playing { get; set; }
-        public bool paused { get; set; }
-        public bool stoppin { get; set; }
-        public bool alone { get; set; }
+        public bool sstop { get; set; }
         public ulong cmdChannel { get; set; }
+        public bool paused { get; set; }
+        public LLEvents AudioEvents { get; set; }
+        public Functions AudioFunctions { get; set; }
+        public Queue AudioQueue { get; set; }
     }
 
     public class Gsets2
@@ -351,6 +353,5 @@ namespace MikuMusicSharp.BotClass.BotNew
         public DiscordMember requester { get; set; }
         public LavalinkTrack LavaTrack { get; set; }
         public DateTime addtime { get; set; }
-        public bool sstop { get; set; }
     }
 }
